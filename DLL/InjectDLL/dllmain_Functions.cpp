@@ -1903,6 +1903,15 @@ void Main::Setup()
 
     Game::GameInstance = new MemoryAccess::LocalInstance();
 
+#ifndef _WIN32
+    // The game hooks dereference GameInstance. On Windows they're registered when the DLL is
+    // injected, relying on the launcher reaching this point before the game first calls them.
+    // On Linux they're registered here instead, so an early call can't crash Cemu: until then,
+    // the patches' dynamic branch finds no function and skips the hook.
+    SetupAssemblyPatches();
+    Logging::LoggerService::LogInformation("Registered game hooks.");
+#endif
+
     Game::GameInstance->playerNumber = playerNumber;
 
     Logging::LoggerService::LogInformation("Assigned to player " + std::to_string(playerNumber));

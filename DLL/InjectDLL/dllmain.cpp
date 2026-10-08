@@ -183,14 +183,41 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 // LD_PRELOAD loads the mod before Cemu's main(), while on Windows the launcher injects it into an
 // already running Cemu. Wait for Cemu to initialize, then start up like DllMain does.
+// Bytes used by Cemu's HLE function table (`std::vector<osFunctionEntry_t>* s_osFunctionTable`).
+static uint64_t HLETableBytes()
+{
+    uint64_t symbol = Platform::FindCemuSymbol("s_osFunctionTable");
+    uint64_t table = 0;
+    uint64_t bounds[2] = {}; // libstdc++ vector: begin, end
+    if (!symbol || !Platform::ReadMemory(symbol, &table, sizeof(table)) || !table || !Platform::ReadMemory(table, bounds, sizeof(bounds)))
+        return 0;
+    return bounds[1] - bounds[0];
+}
+
+static void SelfTestHLEFunction(void*)
+{
+}
+
 // Progress also goes to Cemu's stderr, since the log file only exists once the logger starts.
 static void LinuxStartup()
 {
     Platform::WaitForCemuStartup();
     Logging::LoggerService::StartLoggerService();
     fprintf(stderr, "[BOTWM] Cemu initialized. Log: %s/BOTWM/LatestLog.txt\n", Platform::AppDataDirectory().c_str());
-    Main::SetupAssemblyPatches();
-    fprintf(stderr, "[BOTWM] Game hooks registered. Waiting for the launcher.\n");
+
+    // Main::baseAddr was initialized when the library loaded, before Cemu allocated guest memory.
+    // The game hooks add it to every guest address.
+    while ((Main::baseAddr = Memory::getBaseAddress()) == 0)
+        Sleep(100);
+    fprintf(stderr, "[BOTWM] Guest memory base: 0x%llx\n", (unsigned long long)Main::baseAddr);
+
+    // The game hooks are registered in Main::Setup on Linux (see there). Check now that
+    // registering works, with a function nothing calls.
+    uint64_t tableBytes = HLETableBytes();
+    bool registered = Platform::RegisterHLEFunction("botwm", "selftest", (void*)&SelfTestHLEFunction);
+    fprintf(stderr, "[BOTWM] HLE registration self-test: %s\n", registered && HLETableBytes() > tableBytes ? "OK" : "FAILED");
+
+    fprintf(stderr, "[BOTWM] Waiting for the launcher.\n");
     namedPipe->createServer();
     readInstruction();
 }
