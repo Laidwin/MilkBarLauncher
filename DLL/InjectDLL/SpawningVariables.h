@@ -753,7 +753,10 @@ void timemgr_OnInit(PPCInterpreter_t* hCPU)
 void init() {
 	auto osLib_registerHLEFunction = [](const char* libraryName, const char* functionName, void (*function)(PPCInterpreter_t*)) {
 		if (!Platform::RegisterHLEFunction(libraryName, functionName, (void*)function))
+		{
 			Logging::LoggerService::LogError(std::string("Could not register ") + libraryName + "." + functionName + " in Cemu.", "init");
+			fprintf(stderr, "[BOTWM] Could not register %s.%s in Cemu.\n", libraryName, functionName);
+		}
 	};
 	osLib_registerHLEFunction("spawnactors", "fnCallMain", static_cast<void (*) (PPCInterpreter_t*)>(&mainFn)); // Give our assembly patch something to hook into
 	osLib_registerHLEFunction("multiplayer", "WeatherSync", static_cast<void (*) (PPCInterpreter_t*)>(&WeatherFn)); // Give our assembly patch something to hook into

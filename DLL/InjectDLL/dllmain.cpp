@@ -183,11 +183,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 // LD_PRELOAD loads the mod before Cemu's main(), while on Windows the launcher injects it into an
 // already running Cemu. Wait for Cemu to initialize, then start up like DllMain does.
+// Progress also goes to Cemu's stderr, since the log file only exists once the logger starts.
 static void LinuxStartup()
 {
     Platform::WaitForCemuStartup();
     Logging::LoggerService::StartLoggerService();
+    fprintf(stderr, "[BOTWM] Cemu initialized. Log: %s/BOTWM/LatestLog.txt\n", Platform::AppDataDirectory().c_str());
     Main::SetupAssemblyPatches();
+    fprintf(stderr, "[BOTWM] Game hooks registered. Waiting for the launcher.\n");
     namedPipe->createServer();
     readInstruction();
 }
@@ -197,6 +200,7 @@ __attribute__((constructor)) static void OnLoad()
     if (!Platform::IsCemuProcess())
         return;
 
+    fprintf(stderr, "[BOTWM] Loaded into Cemu, waiting for it to initialize.\n");
     std::thread(LinuxStartup).detach();
 }
 
