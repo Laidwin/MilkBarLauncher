@@ -55,7 +55,9 @@ namespace Connectivity
 
     ////////////////// NamedPipes.cpp //////////////////
 
-    // Connection to the launcher.
+    // Connection to the launcher: a message-mode named pipe on Windows, a Unix domain socket
+    // carrying length-prefixed messages on Linux. Both behave like ReadFile/WriteFile on a
+    // message pipe: read returns false while a message larger than the buffer has more to come.
     class namedPipeClass
     {
     public:
@@ -66,6 +68,10 @@ namespace Connectivity
     private:
 #ifdef _WIN32
         HANDLE hPipe;
+#else
+        int socket = -1;
+        std::vector<char> pendingMessage;
+        size_t pendingOffset = 0;
 #endif
     };
 

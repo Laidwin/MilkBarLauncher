@@ -1,22 +1,63 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
 namespace Breath_of_the_Wild_Multiplayer.Source_files
 {
+    // Connection with the mod inside Cemu. On Windows it's a message-mode named pipe. .NET doesn't
+    // support message mode elsewhere, so on Linux it's a Unix domain socket where each message is
+    // prefixed by its 4-byte little-endian length (see DLL/InjectDLL/NamedPipes.cpp).
     public static class NamedPipes
     {
         private static NamedPipeServerStream _server;
+        private static Socket _listener;
+        private static Socket _client;
         public static bool Online = false;
         public static Thread ListenThread;
         public static EventHandler<string> PipeReceived;
 
+        // Linux only: Cemu must be started with BOTWM_LAUNCHER_SOCKET set to this path.
+        public static string SocketPath
+        {
+            get
+            {
+                string path = Environment.GetEnvironmentVariable("BOTWM_LAUNCHER_SOCKET");
+                if (!string.IsNullOrEmpty(path))
+                    return path;
+
+                string runtimeDir = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+                return string.IsNullOrEmpty(runtimeDir) ? "/tmp/botwm-launcher.sock" : Path.Combine(runtimeDir, "botwm-launcher.sock");
+            }
+        }
+
         public static void StartServer()
         {
-            _server = new NamedPipeServerStream(@"languageConnectionPipe", PipeDirection.InOut, 2, PipeTransmissionMode.Message);
-            _server.WaitForConnectionWithTimeout(5);
+            if (OperatingSystem.IsWindows())
+            {
+                _server = new NamedPipeServerStream(@"languageConnectionPipe", PipeDirection.InOut, 2, PipeTransmissionMode.Message);
+                _server.WaitForConnectionWithTimeout(5);
+            }
+            else
+            {
+                File.Delete(SocketPath);
+                _listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                _listener.Bind(new UnixDomainSocketEndPoint(SocketPath));
+                _listener.Listen(1);
+
+                // The mod connects once Cemu has initialized, which takes longer than an injection.
+                var accept = _listener.AcceptAsync();
+                if (!accept.Wait(TimeSpan.FromSeconds(30)))
+                {
+                    CloseSocket();
+                    Online = false;
+                    throw new System.Exception("Could not connect with Cemu. Try again.");
+                }
+                _client = accept.Result;
+            }
             Online = true;
         }
 
@@ -42,7 +83,10 @@ namespace Breath_of_the_Wild_Multiplayer.Source_files
 
         public static void Disconnect()
         {
-            _server.Disconnect();
+            if (OperatingSystem.IsWindows())
+                _server.Disconnect();
+            else
+                CloseSocket();
             Online = false;
         }
 
@@ -57,7 +101,10 @@ namespace Breath_of_the_Wild_Multiplayer.Source_files
         {
             try
             {
-                _server.Write(instruction, 0, instruction.Length);
+                if (OperatingSystem.IsWindows())
+                    _server.Write(instruction, 0, instruction.Length);
+                else
+                    SendMessage(instruction);
 
                 if (receiveResponse().Contains("Succeeded"))
                     return true;
@@ -67,7 +114,7 @@ namespace Breath_of_the_Wild_Multiplayer.Source_files
             catch
             {
                 if (Online)
-                    _server.Disconnect();
+                    Disconnect();
                 Online = false;
                 return false;
             }
@@ -75,6 +122,9 @@ namespace Breath_of_the_Wild_Multiplayer.Source_files
 
         public static string receiveResponse()
         {
+            if (!OperatingSystem.IsWindows())
+                return ReceiveMessage();
+
             byte[] buff = new byte[2048];
 
             try
@@ -104,6 +154,49 @@ namespace Breath_of_the_Wild_Multiplayer.Source_files
             namedPipe.Close();
             Online = false;
             throw new System.Exception("Could not connect with Cemu. Try again.");
+        }
+
+        private static void SendMessage(byte[] message)
+        {
+            _client.Send(BitConverter.GetBytes(message.Length));
+            _client.Send(message);
+        }
+
+        private static string ReceiveMessage()
+        {
+            try
+            {
+                byte[] length = ReceiveExactly(4);
+                return Encoding.UTF8.GetString(ReceiveExactly(BitConverter.ToInt32(length, 0)));
+            }
+            catch
+            {
+                Thread.Sleep(100); // Disconnected: keep PipeListen from spinning.
+                return "";
+            }
+        }
+
+        private static byte[] ReceiveExactly(int size)
+        {
+            byte[] buffer = new byte[size];
+            int received = 0;
+            while (received < size)
+            {
+                int count = _client.Receive(buffer, received, size - received, SocketFlags.None);
+                if (count == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
+                received += count;
+            }
+            return buffer;
+        }
+
+        private static void CloseSocket()
+        {
+            _client?.Close();
+            _listener?.Close();
+            _client = null;
+            _listener = null;
+            File.Delete(SocketPath);
         }
 
     }
