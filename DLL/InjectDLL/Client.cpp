@@ -1,14 +1,22 @@
-#pragma once
-
-#pragma comment(lib, "ws2_32")
 #include "Connectivity.h"
 #include <string>
+
+#ifdef _WIN32
+#pragma comment(lib, "ws2_32")
+static const int SEND_FLAGS = 0;
+#else
+#include <unistd.h>
+// Without it, sending to a socket the server closed raises SIGPIPE and kills Cemu.
+static const int SEND_FLAGS = MSG_NOSIGNAL;
+#endif
 
 using namespace Connectivity;
 
 void Client::connectToServer(std::string IP, std::string PORT)
 {
+#ifdef _WIN32
     WSAStartup(MAKEWORD(2, 0), &WSAData);
+#endif
     server = socket(AF_INET, SOCK_STREAM, 0);
 
     inet_pton(AF_INET, IP.c_str(), &addr.sin_addr);
@@ -47,7 +55,7 @@ void Client::sendMessage(std::string command, std::string message)
         this->buffer[i] = messageToSend[i];
     }
 
-    send(server, buffer, sizeof(buffer), 0);
+    send(server, buffer, sizeof(buffer), SEND_FLAGS);
     memset(buffer, 0, sizeof(buffer));
 }
 
@@ -76,7 +84,7 @@ std::string Client::receive()
 void Client::sendBytes(byte Message[7168])
 {
     const char* CharMessage = reinterpret_cast<const char*>(Message);
-    send(server, CharMessage, 7168, 0);
+    send(server, CharMessage, 7168, SEND_FLAGS);
 }
 
 void Client::receiveBytes(byte* Output)
@@ -104,6 +112,10 @@ void Client::receiveBytes(byte* Output)
 
 void Client::close()
 {
+#ifdef _WIN32
     closesocket(server);
     WSACleanup();
+#else
+    ::close(server);
+#endif
 }

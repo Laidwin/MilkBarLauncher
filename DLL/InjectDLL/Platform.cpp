@@ -61,8 +61,34 @@ bool Platform::WriteMemory(uint64_t address, const void* buffer, size_t size)
 uint64_t Platform::FindCemuMemoryBase()
 {
     typedef void* (*memory_getBaseType)();
-    memory_getBaseType memory_getBase = (memory_getBaseType)GetProcAddress(GetModuleHandleA("Cemu.exe"), "memory_getBase");
+    memory_getBaseType memory_getBase = (memory_getBaseType)FindCemuSymbol("memory_getBase");
     return memory_getBase ? (uint64_t)memory_getBase() : 0;
+}
+
+uint64_t Platform::FindCemuSymbol(const char* name)
+{
+    return (uint64_t)GetProcAddress(GetModuleHandleA("Cemu.exe"), name);
+}
+
+bool Platform::RegisterHLEFunction(const char* libraryName, const char* functionName, void* function)
+{
+    typedef void (*osLib_registerHLEFunctionType)(const char*, const char*, void*);
+    osLib_registerHLEFunctionType osLib_registerHLEFunction = (osLib_registerHLEFunctionType)FindCemuSymbol("osLib_registerHLEFunction");
+    if (!osLib_registerHLEFunction)
+        return false;
+
+    osLib_registerHLEFunction(libraryName, functionName, function);
+    return true;
+}
+
+bool Platform::IsCemuProcess()
+{
+    return GetModuleHandleA("Cemu.exe") != nullptr;
+}
+
+void Platform::WaitForCemuStartup()
+{
+    // The launcher injects the DLL into an already running Cemu.
 }
 
 std::string Platform::AppDataDirectory()
@@ -79,13 +105,74 @@ std::string Platform::AppDataDirectory()
 #else
 
 #include <dlfcn.h>
+#include <elf.h>
+#include <link.h>
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <algorithm>
+#include <cctype>
+#include <chrono>
 #include <fstream>
+#include <thread>
+#include <unordered_map>
 
 namespace
 {
+    // Load bias of the main executable (0 for a non-PIE build, like official Cemu releases).
+    uint64_t ExecutableLoadBias()
+    {
+        uint64_t bias = 0;
+        dl_iterate_phdr([](dl_phdr_info* info, size_t, void* data) {
+            *static_cast<uint64_t*>(data) = info->dlpi_addr;
+            return 1; // The main executable is reported first.
+        }, &bias);
+        return bias;
+    }
+
+    // Functions and variables defined in the executable's .symtab. Linux Cemu exports nothing,
+    // but release builds keep this table (they only strip debug info).
+    std::unordered_map<std::string, uint64_t> ReadExecutableSymbols()
+    {
+        std::unordered_map<std::string, uint64_t> result;
+        std::ifstream file("/proc/self/exe", std::ios::binary);
+
+        Elf64_Ehdr header{};
+        if (!file.read(reinterpret_cast<char*>(&header), sizeof(header)) || memcmp(header.e_ident, ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64)
+            return result;
+
+        std::vector<Elf64_Shdr> sections(header.e_shnum);
+        file.seekg(header.e_shoff);
+        if (!file.read(reinterpret_cast<char*>(sections.data()), sections.size() * sizeof(Elf64_Shdr)))
+            return result;
+
+        uint64_t bias = ExecutableLoadBias();
+        for (const Elf64_Shdr& section : sections)
+        {
+            if (section.sh_type != SHT_SYMTAB || section.sh_link >= sections.size())
+                continue;
+
+            const Elf64_Shdr& namesSection = sections[section.sh_link];
+            std::vector<char> names(namesSection.sh_size);
+            file.seekg(namesSection.sh_offset);
+            std::vector<Elf64_Sym> symbols(section.sh_size / sizeof(Elf64_Sym));
+            if (!file.read(names.data(), names.size()))
+                return result;
+            file.seekg(section.sh_offset);
+            if (!file.read(reinterpret_cast<char*>(symbols.data()), symbols.size() * sizeof(Elf64_Sym)) || names.empty() || names.back() != '\0')
+                return result;
+
+            for (const Elf64_Sym& symbol : symbols)
+            {
+                int type = ELF64_ST_TYPE(symbol.st_info);
+                if (symbol.st_shndx == SHN_UNDEF || (type != STT_FUNC && type != STT_OBJECT) || symbol.st_name >= names.size())
+                    continue;
+                result.emplace(&names[symbol.st_name], bias + symbol.st_value);
+            }
+        }
+        return result;
+    }
+
     // Above any user address (47/48-bit, or 56-bit with 5-level paging), below [vsyscall].
     constexpr uint64_t kMaxUserAddress = 1ULL << 56;
 
@@ -257,11 +344,85 @@ bool Platform::WriteMemory(uint64_t address, const void* buffer, size_t size)
 uint64_t Platform::FindCemuMemoryBase()
 {
     typedef void* (*memory_getBaseType)();
-    memory_getBaseType memory_getBase = (memory_getBaseType)dlsym(RTLD_DEFAULT, "memory_getBase");
-    if (memory_getBase)
+    if (memory_getBaseType memory_getBase = (memory_getBaseType)FindCemuSymbol("memory_getBase"))
         return (uint64_t)memory_getBase();
 
+    // What memory_getBase returns: `uint8* memory_base` in Cemu's MMU.cpp, set by memory_init().
+    if (uint64_t memoryBase = FindCemuSymbol("memory_base"))
+    {
+        uint64_t base = 0;
+        ReadMemory(memoryBase, &base, sizeof(base));
+        return base;
+    }
+
     return FindBaseFromLayout();
+}
+
+uint64_t Platform::FindCemuSymbol(const char* name)
+{
+    if (void* exported = dlsym(RTLD_DEFAULT, name))
+        return (uint64_t)exported;
+
+    static const std::unordered_map<std::string, uint64_t> symbols = ReadExecutableSymbols();
+    auto found = symbols.find(name);
+    return found != symbols.end() ? found->second : 0;
+}
+
+bool Platform::RegisterHLEFunction(const char* libraryName, const char* functionName, void* function)
+{
+    // osLib_registerHLEFunction only forwards to osLib_addFunctionInternal, and the linker drops it
+    // on Linux because nothing in Cemu calls it. Both share the same signature.
+    typedef void (*osLib_registerHLEFunctionType)(const char*, const char*, void*);
+    osLib_registerHLEFunctionType osLib_registerHLEFunction = (osLib_registerHLEFunctionType)FindCemuSymbol("osLib_registerHLEFunction");
+    if (!osLib_registerHLEFunction)
+        osLib_registerHLEFunction = (osLib_registerHLEFunctionType)FindCemuSymbol("_Z25osLib_addFunctionInternalPKcS0_PFvP16PPCInterpreter_tE");
+    if (!osLib_registerHLEFunction)
+        return false;
+
+    osLib_registerHLEFunction(libraryName, functionName, function);
+    return true;
+}
+
+bool Platform::IsCemuProcess()
+{
+    char path[4096];
+    ssize_t length = readlink("/proc/self/exe", path, sizeof(path) - 1);
+    if (length <= 0)
+        return false;
+    path[length] = '\0';
+
+    std::string name = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
+    return name.find("cemu") != std::string::npos;
+}
+
+void Platform::WaitForCemuStartup()
+{
+    // Cemu registers its HLE functions while initializing (before any title boots and applies
+    // graphic pack patches) in `std::vector<osFunctionEntry_t>* s_osFunctionTable`. Wait until
+    // that vector exists and stops growing, so our registration doesn't race Cemu's.
+    uint64_t tableSymbol = FindCemuSymbol("s_osFunctionTable");
+    if (!tableSymbol)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        return;
+    }
+
+    uint64_t lastEnd = 0;
+    int stableChecks = 0;
+    while (stableChecks < 5)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        // libstdc++ vector layout: begin, end, capacity pointers.
+        uint64_t table = 0;
+        uint64_t end = 0;
+        if (!ReadMemory(tableSymbol, &table, sizeof(table)) || table == 0 || !ReadMemory(table + sizeof(uint64_t), &end, sizeof(end)))
+            continue;
+
+        stableChecks = (end == lastEnd) ? stableChecks + 1 : 0;
+        lastEnd = end;
+    }
 }
 
 std::string Platform::AppDataDirectory()

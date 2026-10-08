@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Actor.h"
+#include <stdexcept>
+#include "Platform.h"
 
 using namespace DataTypes;
 
@@ -456,7 +458,7 @@ namespace MemoryAccess
 
 				if (retries == 15)
 				{
-					throw std::exception("Failed to find mod address. Make sure that the mod is installed correctly in BCML.");
+					throw std::runtime_error("Failed to find mod address. Make sure that the mod is installed correctly in BCML.");
 				}
 
 				addr = Memory::PatternScan(sig, Memory::getBaseAddress(), 8) + 0x1;
@@ -557,14 +559,9 @@ namespace MemoryAccess
 
 		std::map<std::string, int> readWeaponDamages()
 		{
-			char* appdata = nullptr;
-			size_t sz = 0;
+			std::string appdata = Platform::AppDataDirectory();
 
-			_dupenv_s(&appdata, &sz, "APPDATA");
-
-			std::string str(appdata);
-
-			std::string filepath = "\\BOTWM\\WeaponDamages.txt";
+			std::string filepath = "/BOTWM/WeaponDamages.txt";
 
 			std::ifstream file(appdata + filepath);
 

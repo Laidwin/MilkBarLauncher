@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include "Compat.h"
 #include "ClientDTO.h"
 #include "ServerDTO.h"
 
@@ -9,7 +9,7 @@ namespace Serialization
 	static short currentIndex = 0;
 	static byte ClientData[7168];
 
-	static class Serializer
+	class Serializer
 	{
 	private:
 		static void copyData(void* Dst, const void* Src, int size)

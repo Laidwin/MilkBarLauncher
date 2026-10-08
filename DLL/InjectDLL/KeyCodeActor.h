@@ -2,7 +2,7 @@
 
 #include <string>
 
-extern struct KeyCodeActor {
+struct KeyCodeActor {
 	KeyCodeActor(std::string name) {
 		Name = name;
 	}

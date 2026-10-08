@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Memory.h"
+#include "Platform.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -11,14 +12,9 @@ using namespace Memory;
 rapidjson::Document Quests_class::readQuestFlags()
 {
 
-	char* appdata = nullptr;
-	size_t sz = 0;
+	std::string appdata = Platform::AppDataDirectory();
 
-	_dupenv_s(&appdata, &sz, "APPDATA");
-
-	std::string str(appdata);
-
-	std::string filepath = "\\BOTWM\\QuestFlags.txt";
+	std::string filepath = "/BOTWM/QuestFlags.txt";
 
 	std::ifstream file(appdata + filepath);
 

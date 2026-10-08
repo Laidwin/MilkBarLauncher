@@ -102,6 +102,15 @@ void run()
     }
     log("Base: %s", hex(base).c_str());
 
+    // Cemu sets memory_base at startup but commits guest memory only when a title boots.
+    Platform::MemoryRegion bootRegion{};
+    for (int attempt = 0; !Platform::QueryRegion(base + 0x02000000, bootRegion) || !bootRegion.readable; attempt++)
+    {
+        if (attempt % 15 == 0)
+            log("Waiting for the game to boot...");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+
     std::vector<Platform::MemoryRegion> regions = Platform::EnumerateRegions(base, 12);
     log("First regions from base, as the scanner numbers them:");
     for (size_t i = 0; i < regions.size(); i++)

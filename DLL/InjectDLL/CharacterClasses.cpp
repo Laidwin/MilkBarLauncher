@@ -1,4 +1,6 @@
 #include "Memory.h"
+#include <cmath>
+#include "Platform.h"
 #include <iostream>
 #include <filesystem>
 #include "LoggerService.h"
@@ -459,14 +461,9 @@ void Link_class::reduceHealth(int healthToReduce)
 rapidjson::Document Link_class::readWeaponDamages()
 {
 
-    char* appdata = nullptr;
-    size_t sz = 0;
+    std::string appdata = Platform::AppDataDirectory();
 
-    _dupenv_s(&appdata, &sz, "APPDATA");
-
-    std::string str(appdata);
-
-    std::string filepath = "\\BOTWM\\WeaponDamages.txt";
+    std::string filepath = "/BOTWM/WeaponDamages.txt";
 
     std::ifstream file(appdata + filepath);
 

@@ -1958,7 +1958,7 @@ void Main::Setup()
 void Main::SetupAssemblyPatches()
 {
     /* Assembly patch startup */
-    memInstance = new MemoryInstance(GetModuleHandleA(NULL));
+    memInstance = new MemoryInstance(nullptr); // The module handle is unused.
     init();
     ActorData::InitDefaultValues();
 }
@@ -2094,7 +2094,6 @@ void Main::SendTimerMessage(bool start, std::string countMode, int startTime, in
 
 void Main::SendMessageToOverlay(std::string Message)
 {
-    DWORD read;
-    WriteFile(Main::namedPipe->hPipe, Message.c_str(), Message.size(), &read, nullptr);
+    Main::namedPipe->write(Message.c_str(), Message.size());
     Logging::LoggerService::LogInformation("Sent \"" + Message + "\" " + "to client.", __FUNCTION__);
 }

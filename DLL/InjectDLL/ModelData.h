@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <Windows.h>
+#include "Compat.h"
 #include "BumiiData.h"
 
 namespace DataTypes

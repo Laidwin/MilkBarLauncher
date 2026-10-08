@@ -1,6 +1,6 @@
 #define _WINSOCKAPI_
 #include <vector>
-#include <Windows.h>
+#include "Compat.h"
 #include <string>
 #include <iostream>
 #include "dllmain_Variables.h"
@@ -8,6 +8,7 @@
 #include "Connectivity.h"
 #include "Memory.h"
 #include "LoggerService.h"
+#include "Platform.h"
 
 using namespace Main;
 
@@ -73,21 +74,27 @@ bool Main::isPaused = true;
 
 std::vector<float> Main::oldLocations[] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
+#ifdef _WIN32
 HMODULE myhModule;
+#endif
 
 bool Main::QuestSyncReady = false;
 
 
+#ifdef _WIN32
 DWORD __stdcall EjectThread(LPVOID lpParameter) {
     Sleep(100);
     FreeLibraryAndExitThread(myhModule, 0);
 }
+#endif
 
 bool startServerLoop()
 {
 
+#ifdef _WIN32
     FILE* fp;
     freopen_s(&fp, "CONOUT$", "w", stdout); // output only
+#endif
     std::cout << "Start of the console" << std::endl;
 
     CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Main::mainServerLoop, 0, 0, 0);
@@ -99,19 +106,18 @@ void readInstruction()
 {
 
     bool success = false;
-    DWORD read;
     bool started = false;
 
     while (!started)
     {
-        TCHAR chBuff[BUFF_SIZE];
-        TCHAR responsePositive[BUFF_SIZE] = "Succeeded";
-        TCHAR responseNegative[BUFF_SIZE] = "Failed";
+        char chBuff[BUFF_SIZE];
+        char responsePositive[BUFF_SIZE] = "Succeeded";
+        char responseNegative[BUFF_SIZE] = "Failed";
         bool response = false;
 
         do
         {
-            success = ReadFile(namedPipe->hPipe, chBuff, BUFF_SIZE * sizeof(TCHAR), &read, nullptr);
+            success = namedPipe->read(chBuff, BUFF_SIZE);
             
             if (strstr(chBuff, "!connect"))
             {
@@ -137,11 +143,11 @@ void readInstruction()
 
             if (response)
             {
-                success = WriteFile(namedPipe->hPipe, responsePositive, BUFF_SIZE * sizeof(TCHAR), &read, nullptr);
+                success = namedPipe->write(responsePositive, BUFF_SIZE);
             }
             else
             {
-                success = WriteFile(namedPipe->hPipe, responseNegative, BUFF_SIZE * sizeof(TCHAR), &read, nullptr);
+                success = namedPipe->write(responseNegative, BUFF_SIZE);
             }
         } while (!success);
 
@@ -149,6 +155,8 @@ void readInstruction()
 
     startServerLoop();
 }
+
+#ifdef _WIN32
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -170,3 +178,26 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     }
     return TRUE;
 }
+
+#else
+
+// LD_PRELOAD loads the mod before Cemu's main(), while on Windows the launcher injects it into an
+// already running Cemu. Wait for Cemu to initialize, then start up like DllMain does.
+static void LinuxStartup()
+{
+    Platform::WaitForCemuStartup();
+    Logging::LoggerService::StartLoggerService();
+    Main::SetupAssemblyPatches();
+    namedPipe->createServer();
+    readInstruction();
+}
+
+__attribute__((constructor)) static void OnLoad()
+{
+    if (!Platform::IsCemuProcess())
+        return;
+
+    std::thread(LinuxStartup).detach();
+}
+
+#endif

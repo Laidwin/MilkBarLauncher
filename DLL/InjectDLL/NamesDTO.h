@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
-#include <Windows.h>
+#include "Compat.h"
 
 namespace DTO
 {

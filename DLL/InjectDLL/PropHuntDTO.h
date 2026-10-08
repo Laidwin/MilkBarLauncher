@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h>
+#include "Compat.h"
 #include "Vec3f.h"
 
 using namespace DataTypes;

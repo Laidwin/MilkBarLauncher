@@ -1,4 +1,5 @@
 #include "dllmain_Functions.h"
+#include <cmath>
 
 void Main::PlayerUpdater()
 {

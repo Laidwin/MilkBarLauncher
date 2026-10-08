@@ -5,7 +5,7 @@ using namespace DataTypes;
 
 namespace Helper
 {
-	static class Extrapolation
+	class Extrapolation
 	{
 	public:
 		static Vec3f Next(Vec3f currentPosition, Vec3f speed, float deltaTime)

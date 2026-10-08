@@ -2,6 +2,8 @@
 
 using namespace Connectivity;
 
+#ifdef _WIN32
+
 void namedPipeClass::createServer()
 {
 	bool pipeOpened = false;
@@ -28,3 +30,37 @@ void namedPipeClass::createServer()
 		this->hPipe = hPipeTemp;
 	}
 }
+
+bool namedPipeClass::read(char* buffer, size_t size)
+{
+	DWORD read;
+	return ReadFile(this->hPipe, buffer, (DWORD)size, &read, nullptr);
+}
+
+bool namedPipeClass::write(const char* buffer, size_t size)
+{
+	DWORD written;
+	return WriteFile(this->hPipe, buffer, (DWORD)size, &written, nullptr);
+}
+
+#else
+
+// TODO(linux): connect to the launcher over a Unix domain socket (step 4 of the Linux port).
+
+void namedPipeClass::createServer()
+{
+	Logging::LoggerService::LogWarning("Launcher connection is not implemented on Linux yet.", __FUNCTION__);
+}
+
+bool namedPipeClass::read(char* buffer, size_t size)
+{
+	Sleep(1000);
+	return false;
+}
+
+bool namedPipeClass::write(const char* buffer, size_t size)
+{
+	return false;
+}
+
+#endif

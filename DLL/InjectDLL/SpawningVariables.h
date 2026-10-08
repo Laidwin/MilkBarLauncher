@@ -6,13 +6,14 @@
 #include <map>
 #include "ActorData.h"
 #include "Memory.h"
+#include "Platform.h"
 #include "dllmain_Variables.h"
 #include "Entities.h"
 #include "Game.h"
 
 // This stuff here was yoinked from BetterVR
 // -----------------------------------------
-	extern union FPR_t {
+	union FPR_t {
 		double fpr;
 		struct
 		{
@@ -30,7 +31,7 @@
 		};
 	};
 
-	extern struct PPCInterpreter_t {
+	struct PPCInterpreter_t {
 		uint32_t instructionPointer;
 		uint32_t gpr[32];
 		FPR_t fpr[32];
@@ -57,7 +58,7 @@
 
 
 #pragma pack(1)
-	extern struct TransferableData { // This is reversed compared to the gfx pack because we read as big endian.
+	struct TransferableData { // This is reversed compared to the gfx pack because we read as big endian.
 		int f_r10;
 		int f_r9;
 		int f_r8;
@@ -78,12 +79,12 @@
 	};
 
 #pragma pack(1)
-	extern struct InstanceData {
+	struct InstanceData {
 		char name[152]; // We'll allocate all unused storage for use for name storage.. just in case of a really long actor name
 		uint8_t actorStorage[104];
 	};
 
-	extern struct QueueActor {
+	struct QueueActor {
 		float PosX;
 		float PosY;
 		float PosZ;
@@ -750,7 +751,10 @@ void timemgr_OnInit(PPCInterpreter_t* hCPU)
 }
 
 void init() {
-	osLib_registerHLEFunctionType osLib_registerHLEFunction = (osLib_registerHLEFunctionType)GetProcAddress(GetModuleHandleA("Cemu.exe"), "osLib_registerHLEFunction");
+	auto osLib_registerHLEFunction = [](const char* libraryName, const char* functionName, void (*function)(PPCInterpreter_t*)) {
+		if (!Platform::RegisterHLEFunction(libraryName, functionName, (void*)function))
+			Logging::LoggerService::LogError(std::string("Could not register ") + libraryName + "." + functionName + " in Cemu.", "init");
+	};
 	osLib_registerHLEFunction("spawnactors", "fnCallMain", static_cast<void (*) (PPCInterpreter_t*)>(&mainFn)); // Give our assembly patch something to hook into
 	osLib_registerHLEFunction("multiplayer", "WeatherSync", static_cast<void (*) (PPCInterpreter_t*)>(&WeatherFn)); // Give our assembly patch something to hook into
 	osLib_registerHLEFunction("ukl_actorinterceptor", "OnActorCreate", static_cast<void (*) (PPCInterpreter_t*)>(&OnActorCreate)); // Give our assembly patch something to hook into

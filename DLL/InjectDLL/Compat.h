@@ -18,11 +18,32 @@
 
 typedef uint32_t DWORD;
 typedef uint8_t BYTE;
+typedef uint32_t UINT32;
 typedef uint8_t byte;
 typedef int BOOL;
+typedef void* HANDLE;
+typedef void* HMODULE;
+typedef void* LPVOID;
+typedef const wchar_t* LPCWSTR;
+typedef DWORD (*LPTHREAD_START_ROUTINE)(LPVOID);
 
 #define TRUE 1
 #define FALSE 0
+#define MB_OK 0
+
+// The mod never keeps thread handles, so threads are simply detached.
+inline HANDLE CreateThread(void*, size_t, LPTHREAD_START_ROUTINE start, LPVOID parameter, DWORD, DWORD*)
+{
+    std::thread([start, parameter] { start(parameter); }).detach();
+    return nullptr;
+}
+
+// No message boxes from inside Cemu on Linux; the text goes to Cemu's stderr.
+inline int MessageBoxW(void*, LPCWSTR text, LPCWSTR, unsigned)
+{
+    fprintf(stderr, "[BOTWM] %ls\n", text);
+    return 0;
+}
 
 inline DWORD GetTickCount()
 {

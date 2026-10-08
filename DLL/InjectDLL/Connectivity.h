@@ -1,14 +1,26 @@
 #pragma once
 
-#define _WINSOCKAPI_
 #define BUFF_SIZE 2048
 #define RAPIDJSON_HAS_STDSTRING 1
 
+#ifdef _WIN32
+#define _WINSOCKAPI_
 #include <Windows.h>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-#include <string>
 #include <tchar.h>
+#else
+#include "Compat.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+typedef int SOCKET;
+typedef sockaddr_in SOCKADDR_IN;
+typedef sockaddr SOCKADDR;
+#endif
+
+#include <string>
 #include <map>
 #include <any>
 #include "rapidjson/writer.h"
@@ -24,7 +36,9 @@ namespace Connectivity
     class Client {
 
     private:
+#ifdef _WIN32
         WSADATA WSAData;
+#endif
         SOCKET server;
         SOCKADDR_IN addr;
         char buffer[7168];
@@ -41,11 +55,18 @@ namespace Connectivity
 
     ////////////////// NamedPipes.cpp //////////////////
 
+    // Connection to the launcher.
     class namedPipeClass
     {
     public:
-        HANDLE hPipe;
         void createServer();
+        bool read(char* buffer, size_t size);
+        bool write(const char* buffer, size_t size);
+
+    private:
+#ifdef _WIN32
+        HANDLE hPipe;
+#endif
     };
 
     ////////////////// Interpretation.cpp //////////////////

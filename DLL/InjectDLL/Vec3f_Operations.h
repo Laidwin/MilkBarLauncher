@@ -6,7 +6,7 @@ using namespace DataTypes;
 
 namespace Helper
 {
-	static class Vec3f_Operations
+	class Vec3f_Operations
 	{
 	public:
 		static float GetDistance(Vec3f first, Vec3f second, bool includeYAxis = true)

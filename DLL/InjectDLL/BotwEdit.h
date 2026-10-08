@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <stdint.h>
-#include <Windows.h>
+#include "Compat.h"
 #include <array>
 #include <algorithm>
 #include <string>
@@ -110,7 +110,7 @@ public:
 	*/
 
 
-	static class floatBE {
+	class floatBE {
 	public:
 		floatBE() {
 			data = 0.f;
@@ -137,7 +137,7 @@ public:
 			return(floatBE(dataCopy));
 		}
 		floatBE operator * (double val) {
-			floatBE::operator *((float)val);
+			return floatBE::operator *((float)val);
 		}
 		operator float() const {
 			float copy = data;
@@ -148,7 +148,7 @@ public:
 		float data; // This is the big endian data, we're just using the float type because it has the right about of bytes.
 	};
 
-	static class intBE {
+	class intBE {
 	public:
 		void operator = (const int val) {
 			data = val;

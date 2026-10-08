@@ -2,7 +2,7 @@
 
 #define _WINSOCKAPI_
 #include <vector>
-#include <Windows.h>
+#include "Compat.h"
 #include <string>
 #include <iostream>
 #include "Connectivity.h"
