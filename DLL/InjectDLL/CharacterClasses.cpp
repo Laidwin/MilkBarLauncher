@@ -88,18 +88,7 @@ std::vector<uint64_t> Link_class::ScanData()
         break;
     }
 
-    MEMORY_BASIC_INFORMATION mbi{ 0 };
-
-    uint64_t startAddr = getBaseAddress();
-    for (int i = 0; i < 7; i++)
-    {
-        if (VirtualQuery((LPCVOID)startAddr, &mbi, sizeof(mbi)))
-        {
-            startAddr += mbi.RegionSize;
-        }
-
-    }
-
+    uint64_t startAddr = Memory::findRegionBaseAddress(getBaseAddress(), 8);
     uint64_t offset = locationAddr - startAddr - 0x500000;
 
     while (true)
@@ -913,18 +902,7 @@ uint64_t OtherPlayer_class::ScanData(uint64_t offset)
     if (playerNumber == 1)
     {
 
-        MEMORY_BASIC_INFORMATION mbi{ 0 };
-
-        uint64_t startAddr = getBaseAddress();
-        for (int i = 0; i < 7; i++)
-        {
-            if (VirtualQuery((LPCVOID)startAddr, &mbi, sizeof(mbi)))
-            {
-                startAddr += mbi.RegionSize;
-            }
-
-        }
-
+        uint64_t startAddr = Memory::findRegionBaseAddress(getBaseAddress(), 8);
         offset = baseAnimationAddr - startAddr - 0x500000;
 
     }

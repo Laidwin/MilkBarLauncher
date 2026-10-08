@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Windows.h>
+#include "Compat.h"
 #include "Memory.h"
+#include "Platform.h"
 
 namespace DataTypes
 {
@@ -127,12 +128,11 @@ namespace DataTypes
 		if (Address == 0)
 			return false;
 
-		MEMORY_BASIC_INFORMATION mbi{ 0 };
-		DWORD protectflags = (PAGE_GUARD | PAGE_NOCACHE | PAGE_NOACCESS);
+		Platform::MemoryRegion region;
 
-		if (VirtualQuery((LPCVOID)Address, &mbi, sizeof(mbi)))
+		if (Platform::QueryRegion(Address, region))
 		{
-			if (mbi.Protect & protectflags || !(mbi.State & MEM_COMMIT)) {
+			if (!region.readable) {
 				Logging::LoggerService::LogError("Failed to validate address.", caller);
 
 				exit(1);

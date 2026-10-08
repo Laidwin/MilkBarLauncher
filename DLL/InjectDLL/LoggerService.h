@@ -3,10 +3,9 @@
 #include <fstream>
 #include <iomanip>
 #include <ctime>
-#include <direct.h>
 #include <string>
 #include <iostream>
-#include <windows.h>
+#include "Compat.h"
 #include <shared_mutex>
 
 /*
@@ -25,7 +24,7 @@ namespace Logging
 	static std::string TimerName = "";
 	static std::shared_mutex LogMutex;
 
-	static class LoggerService
+	class LoggerService
 	{
 	private:
 		static void WriteToLog(std::string Message, std::string LogType, const char* caller = "");

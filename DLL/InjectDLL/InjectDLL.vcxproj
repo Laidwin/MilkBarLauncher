@@ -275,6 +275,8 @@
     <ClInclude Include="NetworkDTO.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="Platform.h" />
+    <ClInclude Include="Compat.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PropHuntDTO.h" />
     <ClInclude Include="Quaternion.h" />
@@ -310,6 +312,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Linux|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Platform.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="QuaternionBE.cpp" />
     <ClCompile Include="QuestSync.cpp" />

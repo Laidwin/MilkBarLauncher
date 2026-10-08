@@ -38,6 +38,9 @@
     <ClCompile Include="Scanner.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="Platform.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
     <ClCompile Include="WorldClass.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
@@ -75,6 +78,12 @@
       <Filter>Connectivity</Filter>
     </ClInclude>
     <ClInclude Include="Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Compat.h">
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="LoggerService.h">

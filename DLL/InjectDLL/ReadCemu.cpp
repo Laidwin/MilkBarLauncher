@@ -1,12 +1,32 @@
 #include "Memory.h"
+#include "Platform.h"
+#include <algorithm>
 #include <iostream>
+#include <stdexcept>
+
+namespace
+{
+    // Throw on failure so the callers' catch blocks log it, instead of crashing Cemu on Linux.
+    DWORD ReadDword(uint64_t Addr)
+    {
+        DWORD value;
+        if (!Platform::ReadMemory(Addr, &value, sizeof(value)))
+            throw std::runtime_error("Failed to read memory");
+        return value;
+    }
+
+    void WriteMemory(uint64_t Addr, const void* data, size_t size)
+    {
+        if (!Platform::WriteMemory(Addr, data, size))
+            throw std::runtime_error("Failed to write memory");
+    }
+}
 
 uint64_t Memory::getBaseAddress()
 {
     if (base_addr == 0)
     {
-        Memory::memory_getBaseType memory_getBase = (Memory::memory_getBaseType)GetProcAddress(GetModuleHandle("Cemu.exe"), "memory_getBase");
-        base_addr = (uint64_t)memory_getBase();
+        base_addr = Platform::FindCemuMemoryBase();
     }
 
     return base_addr;
@@ -14,7 +34,9 @@ uint64_t Memory::getBaseAddress()
 
 DWORD Memory::read_memory(uint64_t Addr, const char* caller)
 {
-    return *(DWORD*)(Addr);
+    DWORD value = 0;
+    Platform::ReadMemory(Addr, &value, sizeof(value));
+    return value;
 }
 
 void Memory::ValidateAddress(uint64_t address)
@@ -41,12 +63,10 @@ std::vector<BYTE> Memory::read_bytes(uint64_t Addr, int bytes, const char* calle
     try
     {
 
-        std::vector<BYTE> bytesRead;
+        std::vector<BYTE> bytesRead(bytes > 0 ? bytes : 0);
 
-        for (int i = 0; i < bytes; i++)
-        {
-            bytesRead.push_back(*(BYTE*)(Addr + i));
-        }
+        if (!bytesRead.empty() && !Platform::ReadMemory(Addr, bytesRead.data(), bytesRead.size()))
+            throw std::runtime_error("Failed to read memory");
 
         return bytesRead;
     }
@@ -71,7 +91,7 @@ float Memory::read_bigEndianFloat(uint64_t Addr, const char* caller)
     try
     {
         float bigf;
-        DWORD result = *(DWORD*)(Addr);
+        DWORD result = ReadDword(Addr);
         int swapped_value = Memory::swap_Endian(int(result));
         memcpy(&bigf, &swapped_value, 4);
         return bigf;
@@ -95,7 +115,7 @@ int Memory::read_bigEndian4Bytes(uint64_t Addr, const char* caller)
 {
     try 
     {
-        return Memory::swap_Endian(int(*(DWORD*)(Addr)));
+        return Memory::swap_Endian(int(ReadDword(Addr)));
     }
     catch (...)
     {
@@ -116,7 +136,7 @@ int Memory::read_bigEndian4BytesOffset(uint64_t Offset, const char* caller)
 {
     try
     {
-        return Memory::swap_Endian(int(*(DWORD*)(Offset + getBaseAddress())));
+        return Memory::swap_Endian(int(ReadDword(Offset + getBaseAddress())));
     }
     catch (...)
     {
@@ -174,7 +194,8 @@ void Memory::write_bigEndianFloat(uint64_t Addr, float value, const char* caller
 
         int val_int;
         memcpy(&val_int, &value, 4);
-        *(DWORD*)(Addr) = (DWORD)Memory::swap_Endian(val_int);
+        DWORD swapped = (DWORD)Memory::swap_Endian(val_int);
+        WriteMemory(Addr, &swapped, sizeof(swapped));
     }
     catch (...)
     {
@@ -196,7 +217,8 @@ void Memory::write_bigEndian4Bytes(uint64_t Addr, int value, const char* caller)
 {
     try
     {
-        *(DWORD*)(Addr) = (DWORD)Memory::swap_Endian(value);
+        DWORD swapped = (DWORD)Memory::swap_Endian(value);
+        WriteMemory(Addr, &swapped, sizeof(swapped));
     }
     catch (...)
     {
@@ -218,7 +240,7 @@ void Memory::write_byte(uint64_t Addr, BYTE byte, const char* caller)
 {
     try
     {
-        *(BYTE*)(Addr) = byte;
+        WriteMemory(Addr, &byte, sizeof(byte));
     }
     catch (...)
     {
@@ -240,10 +262,8 @@ void Memory::write_bytes(uint64_t Addr, std::vector<BYTE> bytes, const char* cal
 {
     try
     {
-        for (int i = 0; i < bytes.size(); i++)
-        {
-            *(BYTE*)(Addr + i) = bytes[i];
-        }
+        if (!bytes.empty())
+            WriteMemory(Addr, bytes.data(), bytes.size());
     }
     catch (...)
     {
@@ -270,15 +290,10 @@ void Memory::write_string(uint64_t Addr, std::string string, int bytes, const ch
 
         if (bytes != 0)
         {
-            for (int i = 0; i < bytes; i++)
-            {
-                BYTE byteToWrite = 0x00;
+            std::vector<BYTE> bytesToWrite(bytes, 0x00);
+            std::copy_n(string.begin(), std::min<size_t>(string.size(), bytes), bytesToWrite.begin());
 
-                if (i < string.size())
-                    byteToWrite = string[i];
-
-                *(BYTE*)(Addr + i) = byteToWrite;
-            }
+            WriteMemory(Addr, bytesToWrite.data(), bytesToWrite.size());
         }
     }
     catch (...)

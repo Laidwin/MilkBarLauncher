@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <Windows.h>
+#include "Compat.h"
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -34,7 +34,6 @@ namespace Memory
     ////////////////// ReadCemu.cpp //////////////////
 
 
-    typedef void* (*memory_getBaseType)();
     uint64_t getBaseAddress();
 
     DWORD read_memory(uint64_t Addr, const char* caller = "");
@@ -305,7 +304,7 @@ namespace Memory
 
     static uint64_t pingAddress;
 
-    static class MultiplayerQuest
+    class MultiplayerQuest
     {
     public:
         static std::vector<uint64_t> findMQuests(uint64_t offset);
@@ -340,7 +339,7 @@ namespace Memory
     static DWORD LastMessageTime = -1;
     static std::vector<std::string> MessageQueue = {};
     ////////////////// MessagerService.cpp //////////////////
-    static class MessagerService
+    class MessagerService
     {
     public:
         static void StartMessagerService();

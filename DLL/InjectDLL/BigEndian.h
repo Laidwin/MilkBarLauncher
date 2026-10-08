@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Memory.h"
+#include "Platform.h"
 #include <array>
 
 namespace DataTypes
@@ -154,12 +155,11 @@ namespace DataTypes
 			return false;
 		}
 
-		MEMORY_BASIC_INFORMATION mbi{ 0 };
-		DWORD protectflags = (PAGE_GUARD | PAGE_NOCACHE | PAGE_NOACCESS);
+		Platform::MemoryRegion region;
 
-		if (VirtualQuery((LPCVOID)Address, &mbi, sizeof(mbi)))
+		if (Platform::QueryRegion(Address, region))
 		{
-			if (mbi.Protect & protectflags || !(mbi.State & MEM_COMMIT)) {
+			if (!region.readable) {
 				Logging::LoggerService::LogError("Failed to validate address. Address: " + std::to_string(Address), caller);
 
 				exit(1);

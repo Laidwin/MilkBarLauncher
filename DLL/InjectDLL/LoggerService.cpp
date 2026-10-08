@@ -1,4 +1,6 @@
 #include "LoggerService.h"
+#include "Platform.h"
+#include <filesystem>
 
 using namespace Logging;
 
@@ -42,26 +44,23 @@ void LoggerService::WriteToLog(std::string Message, std::string LogType, const c
 void LoggerService::StartLoggerService()
 {
 
-	char* appdata = nullptr;
-	size_t sz = 0;
+	std::string appdata = Platform::AppDataDirectory();
 
-	_dupenv_s(&appdata, &sz, "APPDATA");
+	std::filesystem::create_directories(appdata + "/BOTWM");
 
-	std::string str(appdata);
-
-	std::string filepath = "\\BOTWM\\LatestLog.txt";
+	std::string filepath = "/BOTWM/LatestLog.txt";
 
 	std::ifstream file(appdata + filepath);
 
 	if (file.good())
 	{
-		std::string LogsPath = "\\BOTWM\\Logs";
+		std::string LogsPath = "/BOTWM/Logs";
 
 		std::ifstream LogsFolder(appdata + LogsPath);
 
 		if (!LogsFolder.good())
 		{
-			_mkdir((appdata + LogsPath).c_str());
+			std::filesystem::create_directory(appdata + LogsPath);
 		}
 
 		int counter = 0;
@@ -77,12 +76,12 @@ void LoggerService::StartLoggerService()
 
 			file.open(appdata + filepath);
 
-			std::ifstream Logfile(appdata + LogsPath + "\\" + fileDate + "_" + std::to_string(counter) + ".txt");
+			std::ifstream Logfile(appdata + LogsPath + "/" + fileDate + "_" + std::to_string(counter) + ".txt");
 
 			if (!Logfile.good())
 			{
 
-				std::ofstream OldLog((appdata + LogsPath + "\\" + fileDate + "_" + std::to_string(counter) + ".txt").c_str());
+				std::ofstream OldLog((appdata + LogsPath + "/" + fileDate + "_" + std::to_string(counter) + ".txt").c_str());
 
 				std::string newLine;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <Windows.h>
 #include "Memory.h"
+#include "Platform.h"
 #include "CharacterLocation.h"
 
 namespace DataTypes
@@ -36,16 +36,7 @@ namespace DataTypes
 				addr = Memory::PatternScan(signature, Memory::getBaseAddress(), 8, Memory::ScanOffset);
 			}
 
-			MEMORY_BASIC_INFORMATION mbi{ 0 };
-
-			Memory::RegionStart = Memory::getBaseAddress();
-			for (int i = 0; i < 7; i++)
-			{
-				if (VirtualQuery((LPCVOID)Memory::RegionStart, &mbi, sizeof(mbi)))
-				{
-					Memory::RegionStart += mbi.RegionSize;
-				}
-			}
+			Memory::RegionStart = Memory::findRegionBaseAddress(Memory::getBaseAddress(), 8);
 			
 			Memory::ScanOffset = addr - Memory::RegionStart;
 
@@ -98,12 +89,11 @@ namespace DataTypes
 				return false;
 			}
 
-			MEMORY_BASIC_INFORMATION mbi{ 0 };
-			DWORD protectflags = (PAGE_GUARD | PAGE_NOCACHE | PAGE_NOACCESS);
+			Platform::MemoryRegion region;
 
-			if (VirtualQuery((LPCVOID)Address, &mbi, sizeof(mbi)))
+			if (Platform::QueryRegion(Address, region))
 			{
-				if (mbi.Protect & protectflags || !(mbi.State & MEM_COMMIT)) {
+				if (!region.readable) {
 					Logging::LoggerService::LogError("Failed to validate address.", caller);
 
 					exit(1);

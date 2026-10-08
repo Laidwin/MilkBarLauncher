@@ -121,14 +121,7 @@ void Quests_class::scanQuestMemory(std::vector<std::string> QuestsToSync)
 
 			if (newQuest.Address == -1)
 			{
-				MEMORY_BASIC_INFORMATION mbi{ 0 };
-
-				uint64_t startAddr = getBaseAddress();
-
-				for (int k = 0; k < 7; k++)
-					if (VirtualQuery((LPCVOID)startAddr, &mbi, sizeof(mbi)))
-							startAddr += mbi.RegionSize;
-				
+				uint64_t startAddr = Memory::findRegionBaseAddress(getBaseAddress(), 8);
 				bool found = false;
 				int offset2 = 16;
 
@@ -186,14 +179,7 @@ void Quests_class::scanQuestMemory(std::vector<std::string> QuestsToSync)
 			//newQuest.Value = read_bytes(newQuest.Address)[0];
 			newQuest.Value = 0;
 
-			MEMORY_BASIC_INFORMATION mbi{ 0 };
-
-			uint64_t startAddr = getBaseAddress();
-
-			for (int k = 0; k < 7; k++)
-				if (VirtualQuery((LPCVOID)startAddr, &mbi, sizeof(mbi)))
-					startAddr += mbi.RegionSize;
-
+			uint64_t startAddr = Memory::findRegionBaseAddress(getBaseAddress(), 8);
 			offset = newQuest.Address - startAddr + 0x1;
 
 			QuestList[QType + std::to_string(i)] = newQuest;
