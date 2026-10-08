@@ -150,30 +150,30 @@ uint64_t parseHexEnv(const char* name)
     return value ? strtoull(value, nullptr, 16) : 0;
 }
 
-// Cemu's 4 GiB reservation shows up as contiguous anonymous mappings spanning at least 4 GiB.
+// Cemu commits fixed guest ranges once a title boots: the FG bucket (0xE0000000), the tiling
+// aperture (0xE8000000) and MEM1 (0xF4000000). A base where readable mappings start at all three
+// is the guest base. The 4 GiB reservation itself can't be used: Linux merges it with neighbouring
+// anonymous mappings, which shifted the base by 0x4801000 on Cemu 2.0-48.
 std::vector<uint64_t> baseCandidatesFromMaps(const std::vector<Region>& maps)
 {
+    constexpr uint64_t kFgBucket = 0xE0000000;
+    constexpr uint64_t kTilingAperture = 0xE8000000;
+    constexpr uint64_t kMem1 = 0xF4000000;
+
+    auto readableRegionStartsAt = [&maps](uint64_t addr) {
+        return std::any_of(maps.begin(), maps.end(), [addr](const Region& r) { return r.readable() && r.start == addr; });
+    };
+
     std::vector<uint64_t> result;
-
-    for (size_t i = 0; i < maps.size();)
+    for (const Region& region : maps)
     {
-        if (!maps[i].path.empty())
-        {
-            i++;
+        if (!region.readable() || !region.path.empty() || region.start < kFgBucket)
             continue;
-        }
 
-        uint64_t runStart = maps[i].start;
-        uint64_t runEnd = maps[i].end;
-        size_t j = i + 1;
-        while (j < maps.size() && maps[j].path.empty() && maps[j].start == runEnd)
-            runEnd = maps[j++].end;
-
-        if (runEnd - runStart >= kGuestSpaceSize)
-            result.push_back(runStart);
-        i = j;
+        uint64_t base = region.start - kFgBucket;
+        if (readableRegionStartsAt(base + kTilingAperture) && readableRegionStartsAt(base + kMem1))
+            result.push_back(base);
     }
-
     return result;
 }
 
@@ -353,9 +353,21 @@ void run()
 
     log("Location signature: %zu hit(s)%s", hits.size(), hits.size() >= kMaxHits ? " (truncated)" : "");
     for (size_t i = 0; i < hits.size(); i++)
+    {
         log("  hit %zu: host 0x%" PRIx64 " guest 0x%08" PRIx64 " region #%d map='%s' section='%s'",
             i, hits[i], hits[i] - base, regionIndexOf(hits[i], guest),
             readLocName(hits[i] + kMapOffset).c_str(), readLocName(hits[i] + kSectionOffset).c_str());
+
+        // The big-endian pointer at +0x8 points at this struct's own map name, which validates the base.
+        uint32_t selfPointer = 0;
+        if (safeRead(hits[i] + 0x8, &selfPointer, sizeof(selfPointer)))
+        {
+            uint64_t expected = hits[i] - base + kMapOffset;
+            selfPointer = __builtin_bswap32(selfPointer);
+            log("    base check: pointer 0x%08x, expected 0x%08" PRIx64 " -> %s",
+                selfPointer, expected, selfPointer == expected ? "OK" : "MISMATCH (base is wrong)");
+        }
+    }
 
     std::vector<uint64_t> glyphHits = scan(kGlyphSig, jitRegions(readMaps(), base));
     log("Glyph JIT signature: %zu hit(s) (not patched, informational only)", glyphHits.size());
