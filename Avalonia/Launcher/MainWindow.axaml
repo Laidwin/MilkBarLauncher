@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:properties="using:Breath_of_the_Wild_Multiplayer.Properties"
+        xmlns:src="using:Breath_of_the_Wild_Multiplayer.Source_files"
+        x:Class="Breath_of_the_Wild_Multiplayer.MainWindow"
+        Width="1188" Height="668.8"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        Icon="/Images/Icon_C.ico"
+        Title="Breath of the Wild Multiplayer">
+
+    <Border Name="Frame" BorderBrush="WhiteSmoke" BorderThickness="1" CornerRadius="10,10,5,5" ClipToBounds="True"
+            Classes.noBackground="{Binding disableBackground}">
+        <Border.Background>
+            <ImageBrush Source="{Binding actualBackground, Source={x:Static properties:Settings.Default}, Converter={x:Static src:ImagePathConverter.Instance}}"/>
+        </Border.Background>
+        <Border.Styles>
+            <Style Selector="Border#Frame.noBackground">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+        </Border.Styles>
+
+        <Grid RowDefinitions="30,*">
+            <Label Content="{Binding appTitle}"
+                   Grid.Row="1"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Bottom"
+                   FontFamily="Roboto"
+                   FontStyle="Italic"
+                   FontSize="16"
+                   Foreground="#66C1C1C1"
+                   ZIndex="1"/>
+
+            <Border Background="{Binding barColor}" PointerPressed="TitleBarDrag" CornerRadius="10,10,0,0" Grid.Row="0"
+                    IsVisible="{Binding !disableBackground}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="-" Classes="toolbar" Click="MinimizeClick"/>
+                    <Button Content="x" Classes="toolbar close" Click="CloseClick"/>
+                </StackPanel>
+            </Border>
+
+            <ContentControl Grid.Row="1" Content="{Binding currentView}"/>
+
+            <Border Grid.Row="1" Background="#CC000000" CornerRadius="0,0,5,5" IsVisible="{Binding isTopView}">
+                <ContentControl Content="{Binding currentTopView}"/>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

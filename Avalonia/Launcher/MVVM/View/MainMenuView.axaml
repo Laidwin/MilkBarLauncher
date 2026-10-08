@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:src="using:Breath_of_the_Wild_Multiplayer.Source_files"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.MainMenuView">
+
+    <UserControl.Styles>
+        <!-- Fades to black and back while the background changes. -->
+        <Style Selector="Border#BackgroundFade.fading">
+            <Style.Animations>
+                <Animation Duration="0:0:0.31" IterationCount="2" PlaybackDirection="Alternate">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Previous / next page arrows, dimmed on the first and last page. -->
+        <Style Selector="Button.pageArrow">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.pageArrow:disabled">
+            <Setter Property="Opacity" Value="0.3"/>
+        </Style>
+        <Style Selector="Label.pageName">
+            <Setter Property="FontFamily" Value="Roboto"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="70,*,70">
+
+        <Border Name="BackgroundFade" Grid.RowSpan="2" Background="Black" Opacity="0" CornerRadius="10,10,5,5"
+                Classes.fading="{Binding changingBackground}"/>
+
+        <Rectangle Grid.Row="1" Fill="#66414141" Classes="pageBackground"
+                   Classes.firstPage="{Binding viewPosition, Converter={x:Static src:EqualsConverter.Instance}, ConverterParameter=1}"
+                   Classes.lastPage="{Binding viewPosition, Converter={x:Static src:EqualsConverter.Instance}, ConverterParameter=2}"/>
+
+        <Border Background="#CC1C1C1C" Grid.Row="0"/>
+        <Border Background="#CC1C1C1C" Grid.Row="2" CornerRadius="0,0,5,5"/>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Classes="pageArrow" Command="{Binding moveLeft}" IsEnabled="{Binding buttonStatus[0]}">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Border Background="Transparent">
+                            <StackPanel>
+                                <Border Height="38">
+                                    <Path Width="20" Height="20" Stretch="Fill" VerticalAlignment="Bottom" Stroke="White" Fill="White" Data="F1 M 287.328,237.333L 319.344,255.818L 319.344,218.849L 287.328,237.333 Z"/>
+                                </Border>
+                                <Label Content="{Binding leftWindow}" Classes="pageName buttonSlide"
+                                       Classes.movingLeft="{Binding movingLeft}" Classes.movingRight="{Binding movingRight}"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Grid RowDefinitions="50,*">
+                <Label Content="{Binding title}"
+                       Classes="slide"
+                       Classes.movingLeft="{Binding movingLeft}" Classes.movingRight="{Binding movingRight}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       Foreground="White"
+                       FontSize="30"
+                       FontFamily="Roboto"
+                       FontStyle="Italic"
+                       FontWeight="Bold"
+                       Width="250"
+                       HorizontalContentAlignment="Center"/>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center">
+                    <Ellipse Fill="{Binding circleColors[0]}" Width="5" Height="5" Margin="2,0,0,0"/>
+                    <Ellipse Fill="{Binding circleColors[1]}" Width="5" Height="5" Margin="2,0,0,0"/>
+                    <Ellipse Fill="{Binding circleColors[2]}" Width="5" Height="5" Margin="2,0,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <Button Classes="pageArrow" Command="{Binding moveRight}" IsEnabled="{Binding buttonStatus[1]}">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Border Background="Transparent">
+                            <StackPanel>
+                                <Border Height="38">
+                                    <Path Width="20" Height="20" Stretch="Fill" VerticalAlignment="Bottom" Stroke="White" Fill="White" Data="F1 M 319.344,237.333L 287.328,218.849L 287.328,255.818L 319.344,237.333 Z"/>
+                                </Border>
+                                <Label Content="{Binding rightWindow}" Classes="pageName buttonSlide"
+                                       Classes.movingLeft="{Binding movingLeft}" Classes.movingRight="{Binding movingRight}"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </StackPanel>
+
+        <ContentControl Grid.Row="1" Content="{Binding currentView}" Classes="pageSlide"
+                        Classes.movingLeft="{Binding movingLeft}" Classes.movingRight="{Binding movingRight}"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.IngameMenuView">
+
+    <UserControl.Styles>
+        <!-- Big notification: fades in over 1s, out over 0.5s. -->
+        <Style Selector="Viewbox.message">
+            <Setter Property="Transitions">
+                <Transitions><DoubleTransition Property="Opacity" Duration="0:0:1"/></Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Viewbox.message.hidden">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="Transitions">
+                <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.5"/></Transitions>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{Binding VBlackBarSize}"/>
+            <ColumnDefinition Width="{Binding VWindowSize}"/>
+            <ColumnDefinition Width="{Binding VBlackBarSize}"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{Binding HBlackBarSize}"/>
+            <RowDefinition Height="{Binding HWindowSize}"/>
+            <RowDefinition Height="{Binding HBlackBarSize}"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,0.5*,*" RowDefinitions="*,*,*">
+
+            <Viewbox Grid.Column="1" Stretch="Uniform" VerticalAlignment="Top">
+                <Label Classes="minigameTimer"
+                       Content="{Binding MinigameTimer.TimerText}"
+                       IsVisible="{Binding MinigameTimer.Visible}"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="1" Grid.ColumnSpan="3" Stretch="Uniform" Classes="message" Classes.hidden="{Binding !MainMessage.Show}">
+                <Label Content="{Binding MainMessage.CurrentMessage}"
+                       Foreground="White" FontFamily="Roboto" FontWeight="Bold" FontStyle="Italic">
+                    <Label.Effect>
+                        <DropShadowEffect OffsetX="0" OffsetY="0" Color="Black" Opacity="1" BlurRadius="20"/>
+                    </Label.Effect>
+                </Label>
+            </Viewbox>
+
+            <!-- Chat feature - WIP (hidden, as in the WPF launcher) -->
+            <ScrollViewer VerticalScrollBarVisibility="Hidden" Grid.Row="2" IsVisible="False">
+                <ItemsControl ItemsSource="{Binding ChatData.Messages}" Background="#66000000">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="0.4*,*">
+                                <TextBlock Text="{Binding MessageSender}" Foreground="{Binding MessageSenderColor}"
+                                           FontFamily="Roboto" HorizontalAlignment="Left" FontSize="20"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Content}" Foreground="White"
+                                           FontFamily="Roboto" HorizontalAlignment="Left" FontSize="20"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

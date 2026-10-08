@@ -1,0 +1,3 @@
+[submodule "Avalonia/External/BfresLibrary"]
+	path = Avalonia/External/BfresLibrary
+	url = https://github.com/NCF-Library/BfresLibrary

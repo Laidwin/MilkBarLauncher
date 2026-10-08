@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:properties="using:Breath_of_the_Wild_Multiplayer.Properties"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.ChangeNameView">
+
+    <StackPanel VerticalAlignment="Center">
+        <Label Content="Edit player name"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               FontFamily="Roboto" FontSize="26" FontStyle="Italic" Foreground="White"/>
+
+        <Label Content="You can always change your player name in Settings tab"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               FontFamily="Roboto" FontSize="14" FontStyle="Italic" Foreground="White"
+               Margin="-10"/>
+
+        <HeaderedContentControl Classes="field" Header="Player Name" Margin="300,0,300,0">
+            <TextBox Classes="fieldInput"
+                     MaxLength="18"
+                     Text="{Binding playerName, Source={x:Static properties:Settings.Default}, Mode=OneWay}"
+                     TextChanged="PlayerName_TextChanged"/>
+        </HeaderedContentControl>
+
+        <Button Width="135" Content="Accept" Margin="10" HorizontalAlignment="Center" Classes="connect" Command="{Binding AcceptClick}"/>
+    </StackPanel>
+</UserControl>

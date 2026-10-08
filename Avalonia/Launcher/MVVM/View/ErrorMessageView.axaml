@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.ErrorMessageView">
+
+    <Grid>
+        <!-- Clicking anywhere closes the message. -->
+        <Button Command="{Binding AcceptClick}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Button.Template>
+                <ControlTemplate>
+                    <Border Background="Transparent"/>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+
+        <StackPanel VerticalAlignment="Center">
+            <Label Content="{Binding Message}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontFamily="Roboto" FontSize="26" FontStyle="Italic" Foreground="White"/>
+
+            <Button Width="135" Content="Accept" Margin="10" HorizontalAlignment="Center" Classes="connect" Command="{Binding AcceptClick}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

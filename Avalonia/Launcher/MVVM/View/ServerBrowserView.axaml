@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.ServerBrowserView"
+             x:Name="Root">
+
+    <Grid ColumnDefinitions="0.5*,0.5*">
+
+        <Path Grid.ColumnSpan="2" Stroke="#55FFFFFF" StrokeThickness="2" ZIndex="1" IsHitTestVisible="False">
+            <Path.Data>
+                <GeometryGroup>
+                    <LineGeometry StartPoint="-500,1" EndPoint="2000,1"/>
+                    <LineGeometry StartPoint="-500,496" EndPoint="2000,496"/>
+                </GeometryGroup>
+            </Path.Data>
+        </Path>
+
+        <Grid Grid.Column="0" RowDefinitions="2*,8*">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <Button Content="Add Server" Classes="connection" Command="{Binding addServerClick}" Tag="/Images/AddServer_Icon.png"/>
+                <Button Content="Direct IP" Classes="connection" Command="{Binding directConnectClick}" Tag="/Images/DirectConnection_Icon.png"/>
+                <Button Content="Refresh" Classes="connection" Command="{Binding refreshClick}" Tag="/Images/Refresh_Icon.png"/>
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Classes="fade" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ItemsControl ItemsSource="{Binding serversToShow}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Margin="15,5,15,5"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="server"
+                                    Command="{Binding #Root.DataContext.serverButtonClick}"
+                                    CommandParameter="{Binding serverIndex}"
+                                    PointerPressed="Server_PointerPressed">
+                                <Button.ContextMenu>
+                                    <ContextMenu Classes="server">
+                                        <MenuItem Header="Edit server" Click="EditClick"/>
+                                        <MenuItem Header="Remove server" Click="RemoveClick"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <Border Grid.Column="1" Background="#99000000" Margin="10,10,0,10" CornerRadius="3,0,0,3">
+            <Border Margin="3,3,0,3" Background="Transparent" BorderBrush="#FF626262" BorderThickness="2,2,0,2" CornerRadius="3,0,0,3">
+                <Grid Margin="5" RowDefinitions="85,6*,157*,80">
+
+                    <StackPanel Orientation="Vertical">
+                        <Label Content="{Binding selectedServer[0].Name}"
+                               Foreground="White" FontFamily="Roboto" FontStyle="Italic" FontWeight="Bold" FontSize="36"/>
+
+                        <Rectangle Height="1" Fill="#CC8C8C8C" IsVisible="{Binding selectedServer[0].visible}"/>
+                        <DockPanel>
+                            <Label Content="{Binding selectedServer[0].questGiver}"
+                                   Foreground="#FF8C8C8C" FontFamily="Roboto" FontStyle="Italic" FontSize="16"
+                                   IsVisible="{Binding selectedServer[0].visible}"/>
+
+                            <Label Content="{Binding selectedServer[0].pingData}"
+                                   Foreground="{Binding selectedServer[0].pingColor}"
+                                   FontFamily="Roboto" FontStyle="Italic" FontSize="16"
+                                   HorizontalContentAlignment="Right"
+                                   IsVisible="{Binding selectedServer[0].visible}"/>
+                        </DockPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.RowSpan="2" Orientation="Vertical">
+                        <TextBlock Text="{Binding selectedServer[0].description}"
+                                   Foreground="White" FontFamily="Roboto" FontStyle="Italic"
+                                   TextWrapping="Wrap" FontSize="24" Margin="5" MaxHeight="150"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                            <Label Content="Gamemode:"
+                                   Foreground="White" FontFamily="Roboto" FontStyle="Italic" FontSize="22"
+                                   IsVisible="{Binding selectedServer[0].open}"/>
+
+                            <Label Content="{Binding selectedServer[0].playStyle}"
+                                   Foreground="#FF467DE3" FontFamily="Roboto" FontStyle="Italic" FontSize="22"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button Content="{Binding selectedServer[0].connectMessage}"
+                            Grid.Row="3"
+                            Margin="10"
+                            Classes="connect"
+                            Command="{Binding connectClick}"
+                            IsVisible="{Binding selectedServer[0].visible}"/>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

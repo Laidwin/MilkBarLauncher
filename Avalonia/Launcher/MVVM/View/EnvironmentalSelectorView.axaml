@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.EnvironmentalSelectorView"
+             x:Name="Root">
+
+    <Grid Margin="80,0,80,0" RowDefinitions="0.10*,0.15*,0.60*,0.15*">
+
+        <Grid Grid.Row="1">
+            <Border Background="#AA000000" CornerRadius="5" Margin="0,10,0,10">
+                <Border Background="Transparent" BorderThickness="2" BorderBrush="#FF404040" Margin="2" CornerRadius="5">
+                    <Grid>
+                        <TextBox Classes="fieldInput" ZIndex="1"
+                                 Text="{Binding SearchTerm}"
+                                 Watermark="Select game model..."/>
+                    </Grid>
+                </Border>
+            </Border>
+        </Grid>
+
+        <Border Background="#BB000000" CornerRadius="5" Grid.Row="2" Margin="0,10,0,10">
+            <Border Background="Transparent" BorderBrush="#FF404040" BorderThickness="2" Margin="2" CornerRadius="5">
+                <ScrollViewer VerticalScrollBarVisibility="Hidden" Margin="0,20,0,20" Classes="fade" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <ItemsControl ItemsSource="{Binding Characters}" HorizontalAlignment="Stretch">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel Margin="15,5,15,5"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="searchResult" Classes.selected="{Binding Selected}"
+                                        Command="{Binding #Root.DataContext.modelButtonClick}"
+                                        CommandParameter="{Binding ModelIndex}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Border>
+
+        <Border Background="#EE000000" CornerRadius="5" Grid.Row="2" Margin="0,10,0,10" IsVisible="{Binding IsLoading}">
+            <Border Background="Transparent" BorderBrush="#FF404040" BorderThickness="2" Margin="2" CornerRadius="5">
+                <Label Content="Loading..."
+                       FontFamily="Roboto" FontStyle="Italic" FontSize="40" Foreground="White"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </Border>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Width="135" Content="Confirm" Margin="10" Classes="connect" Command="{Binding confirmClick}" IsEnabled="{Binding ConfirmEnabled}"/>
+            <Button Width="135" Content="Cancel" Margin="10" Classes="connect" Command="{Binding cancelClick}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

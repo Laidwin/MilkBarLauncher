@@ -1,0 +1,261 @@
+<!-- Server browser styles (WPF: Theme/ServerButton.xaml). WPF keys become classes:
+     ConnectionButtons -> connection, ConnectToServerButton -> connect, ServerButton -> server,
+     Scroll -> fade, ServerContextMenu -> server. -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:src="using:Breath_of_the_Wild_Multiplayer.Source_files">
+
+    <!-- Add server / Direct IP / Refresh. Tag holds the icon path. -->
+    <Style Selector="Button.connection">
+        <Setter Property="Width" Value="90"/>
+        <Setter Property="Height" Value="85"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="#CCD9D9D9"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="Transparent">
+                    <StackPanel>
+                        <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
+                        <Image HorizontalAlignment="Center" Width="50" Height="50"
+                               Source="{TemplateBinding Tag, Converter={x:Static src:ImagePathConverter.Instance}}">
+                            <Image.Effect>
+                                <DropShadowEffect OffsetX="0" OffsetY="0" Color="Black" Opacity="1" BlurRadius="10"/>
+                            </Image.Effect>
+                        </Image>
+                        <Rectangle Fill="{TemplateBinding BorderBrush}" Height="2" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.connection:pointerover">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="White"/>
+    </Style>
+
+    <!-- Connect / Confirm / Cancel / Accept. -->
+    <Style Selector="Button.connect">
+        <Setter Property="BorderBrush" Value="#FF626262"/>
+        <Setter Property="Background" Value="#AA000000"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                    <Border Margin="2" CornerRadius="5" Background="Transparent" BorderThickness="2" BorderBrush="{TemplateBinding BorderBrush}">
+                        <Label Content="{TemplateBinding Content}"
+                               Foreground="{TemplateBinding Foreground}"
+                               FontSize="32"
+                               FontFamily="Roboto"
+                               FontStyle="Italic"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"/>
+                    </Border>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.connect:pressed">
+        <Setter Property="BorderBrush" Value="#FF808080"/>
+    </Style>
+    <Style Selector="Button.connect:pointerover">
+        <Setter Property="Background" Value="#CC000000"/>
+        <Setter Property="BorderBrush" Value="#FF808080"/>
+    </Style>
+    <Style Selector="Button.connect:disabled">
+        <Setter Property="Foreground" Value="Gray"/>
+    </Style>
+
+    <!-- One server in the list. The data context is a serverDataModel. -->
+    <Style Selector="Button.server">
+        <Setter Property="Margin" Value="5,3,5,3"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="Background" Value="#99000000"/>
+        <Setter Property="Foreground" Value="LightGray"/>
+        <Setter Property="BorderBrush" Value="#FF404040"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <!-- Corner brackets around the selected server. -->
+                    <Grid Name="Corners" ZIndex="1" Margin="2" IsVisible="{Binding selected}">
+                        <Polygon Points="0,0 10,0 0,10" Stroke="#FFCCCCCC" Fill="#FFCCCCCC" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <Polygon Points="0,0 10,0 10,10" Stroke="#FFCCCCCC" Fill="#FFCCCCCC" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                        <Polygon Points="10,0 10,10 0,10" Stroke="#FFCCCCCC" Fill="#FFCCCCCC" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                        <Polygon Points="0,0 0,10 10,10" Stroke="#FFCCCCCC" Fill="#FFCCCCCC" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                        <Border Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" Margin="2">
+                            <Grid ColumnDefinitions="*,25">
+                                <Grid Margin="10,0,10,0" RowDefinitions="0.6*,0.4*" ColumnDefinitions="*,150">
+                                    <Label Content="{Binding Name}"
+                                           Grid.ColumnSpan="2"
+                                           FontSize="32" FontFamily="Roboto" FontStyle="Italic"
+                                           Foreground="White" VerticalAlignment="Center" Padding="0"/>
+
+                                    <Label Content="{Binding connectedPlayersString}"
+                                           Grid.Row="1"
+                                           FontSize="20" FontFamily="Roboto" FontStyle="Italic"
+                                           Foreground="#E3D146" VerticalAlignment="Center" HorizontalAlignment="Left" Padding="0"
+                                           ToolTip.ServiceEnabled="{Binding shouldDisplayPlayersTooltip}">
+                                        <ToolTip.Tip>
+                                            <ItemsControl ItemsSource="{Binding playerListWithNumber}" Margin="11">
+                                                <!-- Fills columns of up to 8 names, like the WPF rotated UniformGrid. -->
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Vertical" MaxHeight="208" ItemHeight="26"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Label Content="{Binding}" Foreground="White"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ToolTip.Tip>
+                                    </Label>
+
+                                    <Label Content="{Binding pingData}"
+                                           Grid.Column="1" Grid.Row="1"
+                                           FontSize="20" FontFamily="Roboto" FontStyle="Italic"
+                                           Foreground="{Binding pingColor}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0"/>
+                                </Grid>
+
+                                <Button Grid.Column="1" Command="{Binding changeFavoriteState}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <Button.Template>
+                                        <ControlTemplate>
+                                            <Grid>
+                                                <Rectangle Fill="#FF5C5C5C"/>
+                                                <Ellipse Fill="Black" Width="5" Height="5"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <Ellipse Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Height="30"
+                                         IsHitTestVisible="False" IsVisible="{Binding favorite}">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="#FFE3D146" Offset="0.0"/>
+                                            <GradientStop Color="#FFE3D146" Offset="0.15"/>
+                                            <GradientStop Color="#00E3D146" Offset="0.15"/>
+                                            <GradientStop Color="#00E3D146" Offset="0.25"/>
+                                            <GradientStop Color="#FFE3D146" Offset="0.25"/>
+                                            <GradientStop Color="#FFE3D146" Offset="0.4"/>
+                                            <GradientStop Color="#44E3D146" Offset="0.4"/>
+                                            <GradientStop Color="#00E3D146" Offset="1.0"/>
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+
+                                <Ellipse Name="FavoritePulse" Grid.Column="1" Stroke="#FFE3D146" Margin="-200"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         IsHitTestVisible="False" IsVisible="{Binding favorite}"/>
+                            </Grid>
+                        </Border>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.server:pointerover">
+        <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.server /template/ Grid#Corners">
+        <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="INFINITE" PlaybackDirection="Alternate">
+                <KeyFrame Cue="0%"><Setter Property="Margin" Value="1"/></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Margin" Value="-5"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <!-- Grows from 10 to 40 over 0.8s, fades out by 1s, hidden until the 1.5s loop restarts. -->
+    <Style Selector="Button.server /template/ Ellipse#FavoritePulse">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="INFINITE">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Width" Value="10"/>
+                    <Setter Property="Height" Value="10"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame Cue="53.3%">
+                    <Setter Property="Width" Value="40"/>
+                    <Setter Property="Height" Value="40"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame Cue="66.7%">
+                    <Setter Property="Width" Value="40"/>
+                    <Setter Property="Height" Value="40"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Width" Value="40"/>
+                    <Setter Property="Height" Value="40"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Fades the list edges that have more content to scroll to; classes set in code-behind. -->
+    <Style Selector="ScrollViewer.fade.top">
+        <Setter Property="OpacityMask">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="Black" Offset="0.85"/>
+                <GradientStop Color="Transparent" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollViewer.fade.middle">
+        <Setter Property="OpacityMask">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="Transparent" Offset="0"/>
+                <GradientStop Color="Black" Offset="0.15"/>
+                <GradientStop Color="Black" Offset="0.85"/>
+                <GradientStop Color="Transparent" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollViewer.fade.bottom">
+        <Setter Property="OpacityMask">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="Transparent" Offset="0"/>
+                <GradientStop Color="Black" Offset="0.15"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Edit / remove server menu. -->
+    <Style Selector="ContextMenu.server">
+        <Setter Property="Background" Value="#CC000000"/>
+        <Setter Property="BorderBrush" Value="#FF626262"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="2"/>
+    </Style>
+    <Style Selector="ContextMenu.server MenuItem">
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <!-- All tooltips (WPF: customTooltip and the server players tooltip). -->
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="#CC000000"/>
+        <Setter Property="BorderBrush" Value="#FF626262"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+
+</Styles>

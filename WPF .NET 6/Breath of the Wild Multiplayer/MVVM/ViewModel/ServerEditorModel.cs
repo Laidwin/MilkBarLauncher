@@ -168,6 +168,11 @@ namespace Breath_of_the_Wild_Multiplayer.MVVM.ViewModel
                 this.Title = "Direct connection";
                 this.NameEnabled = false;
             }
+            else if(serverIndex >= 0)
+            {
+                this.Title = "Edit server";
+                this.NameEnabled = true;
+            }
         }
 
         public void ValidateInputs(string? name = null, string? ip = null, string? port = null)

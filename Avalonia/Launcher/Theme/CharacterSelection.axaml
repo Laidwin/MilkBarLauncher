@@ -1,0 +1,60 @@
+<!-- Model selection (WPF: Theme/CharacterSelection.xaml). CharacterBust -> bust,
+     SearchResult -> searchResult; the WPF Selected DataTriggers become the `selected` class.
+     The CharacterName panel is in ModelSelectView. -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:src="using:Breath_of_the_Wild_Multiplayer.Source_files">
+
+    <Style Selector="Button.bust">
+        <Setter Property="Margin" Value="5,3,5,3"/>
+        <Setter Property="Background" Value="#BB000000"/>
+        <Setter Property="Foreground" Value="LightGray"/>
+        <Setter Property="BorderBrush" Value="#FF404040"/>
+        <Setter Property="Height" Value="125"/>
+        <Setter Property="Width" Value="125"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="3" Height="115" Width="115" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Border Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" Margin="2">
+                            <Image Margin="5" Source="{Binding BustPic, Converter={x:Static src:ImagePathConverter.Instance}}"/>
+                        </Border>
+                    </Border>
+
+                    <Border Background="Black" CornerRadius="3" Height="35" Width="58" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <Border Background="Transparent" BorderBrush="#FF404040" BorderThickness="2" Margin="2">
+                            <Image HorizontalAlignment="Left" Source="/Images/ArmorSync.png" IsVisible="{Binding IsArmorSync}"/>
+                        </Border>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.bust:pointerover">
+        <Setter Property="BorderBrush" Value="#FF808080"/>
+    </Style>
+    <Style Selector="Button.bust:pressed">
+        <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+    </Style>
+    <Style Selector="Button.bust.selected">
+        <Setter Property="Background" Value="#FF0093FF"/>
+        <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+    </Style>
+
+    <Style Selector="Button.searchResult">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Label Content="{Binding Name}"
+                       FontFamily="Roboto" FontStyle="Italic" FontSize="24"
+                       Foreground="White" HorizontalAlignment="Left" Background="Transparent"
+                       FontWeight="{TemplateBinding FontWeight}"/>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.searchResult.selected">
+        <Setter Property="FontWeight" Value="UltraBold"/>
+    </Style>
+
+</Styles>

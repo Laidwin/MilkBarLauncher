@@ -349,6 +349,7 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# CMake builds for the Linux port
+# Build outputs of the Linux port
 DLL/InjectDLL/build/
 linux/*/build/
+/build/

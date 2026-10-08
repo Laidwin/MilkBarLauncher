@@ -1,0 +1,172 @@
+<!-- Settings and form fields (WPF: Theme/settingsButtons.xaml). The WPF styles modifiableTextBox,
+     customButton, customCheckbox and optionsCustomLabel all draw the same frame (label on the
+     left, value box on the right); here that frame is HeaderedContentControl.field, holding a
+     TextBox.fieldInput, Button.fieldButton, CheckBox.onOff or arrow buttons. -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="HeaderedContentControl.field">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="#88232323" Margin="15" CornerRadius="5">
+                    <Border Background="Transparent" BorderThickness="2" BorderBrush="#FF9A9A9A" Margin="2" CornerRadius="5">
+                        <Grid ColumnDefinitions="0.35*,0.65*">
+                            <Label Content="{TemplateBinding Header}"
+                                   VerticalAlignment="Center"
+                                   FontFamily="Roboto" FontSize="26" FontStyle="Italic"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Margin="15,0,0,0"/>
+                            <Border Grid.Column="1" Background="#AA000000" Margin="10" CornerRadius="3">
+                                <Border Background="Transparent" BorderBrush="#FF404040" BorderThickness="2" Margin="2">
+                                    <ContentPresenter Content="{TemplateBinding Content}"/>
+                                </Border>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="HeaderedContentControl.field:disabled">
+        <Setter Property="Foreground" Value="Gray"/>
+    </Style>
+
+    <!-- Text value. Fluent restyles text boxes on hover and focus; keep them flat. -->
+    <Style Selector="TextBox.fieldInput">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="CaretBrush" Value="White"/>
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="15,0,0,0"/>
+    </Style>
+    <Style Selector="TextBox.fieldInput:pointerover /template/ Border#PART_BorderElement, TextBox.fieldInput:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="TextBox.fieldInput:pointerover, TextBox.fieldInput:focus">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="TextBox.fieldInput:disabled">
+        <Setter Property="Foreground" Value="Gray"/>
+    </Style>
+    <Style Selector="TextBox.fieldInput:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- Clickable value (customButton). -->
+    <Style Selector="Button.fieldButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}">
+                    <Label Content="{TemplateBinding Content}"
+                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                           FontFamily="Roboto" FontSize="22" FontStyle="Italic" Foreground="White"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.fieldButton:pointerover">
+        <Setter Property="Background" Value="#44000000"/>
+    </Style>
+
+    <!-- ON / OFF switch (customCheckbox). -->
+    <Style Selector="CheckBox.onOff">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="0.6*,0.4*" Background="Transparent">
+                    <Border Name="On" CornerRadius="0,3,3,0" Background="Transparent">
+                        <Label Classes="onOffText" Content="ON"/>
+                    </Border>
+                    <Border Name="Off" Grid.Column="1" CornerRadius="3,0,0,3" Background="#CCFFFFFF">
+                        <Label Classes="onOffText" Content="OFF"/>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="CheckBox.onOff:checked /template/ Border#On">
+        <Setter Property="Background" Value="#CCFFFFFF"/>
+    </Style>
+    <Style Selector="CheckBox.onOff:checked /template/ Border#Off">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Label.onOffText">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Effect">
+            <DropShadowEffect OffsetX="0" OffsetY="0" Color="Black" Opacity="1" BlurRadius="20"/>
+        </Setter>
+    </Style>
+
+    <!-- Previous / next arrows of an option (optionsCustomLabel). -->
+    <Style Selector="Button.arrowLeft, Button.arrowRight">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.arrowLeft">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="DimGray" CornerRadius="2" Margin="1">
+                    <Path Width="10" Height="10" Stretch="Fill" Stroke="White" Fill="White" Data="F1 M 287.328,237.333L 319.344,255.818L 319.344,218.849L 287.328,237.333 Z"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.arrowRight">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="DimGray" CornerRadius="2" Margin="1">
+                    <Path Width="10" Height="10" Stretch="Fill" Stroke="White" Fill="White" Data="F1 M 319.344,237.333L 287.328,218.849L 287.328,255.818L 319.344,237.333 Z"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Current option, sliding like the page titles when it changes. -->
+    <Style Selector="Label.option">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontFamily" Value="Roboto"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Label.option.movingLeft">
+        <Style.Animations>
+            <Animation Duration="0:0:0.7">
+                <KeyFrame Cue="0%"><Setter Property="Margin" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame Cue="42.8%"><Setter Property="Margin" Value="100,0,-100,0"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame Cue="42.9%"><Setter Property="Margin" Value="-100,0,100,0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Margin" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Label.option.movingRight">
+        <Style.Animations>
+            <Animation Duration="0:0:0.7">
+                <KeyFrame Cue="0%"><Setter Property="Margin" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame Cue="42.8%"><Setter Property="Margin" Value="-100,0,100,0"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame Cue="42.9%"><Setter Property="Margin" Value="100,0,-100,0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Margin" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Breath_of_the_Wild_Multiplayer.MVVM.View.ServerEditorView">
+
+    <Grid RowDefinitions="40,40,*,*,*,*,*,40">
+
+        <Label Grid.Row="1"
+               Content="{Binding Title}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               FontFamily="Roboto" FontSize="26" FontStyle="Italic" Foreground="White"/>
+
+        <!-- The view model validates on every change, so the WPF key and paste handlers aren't needed. -->
+        <HeaderedContentControl Grid.Row="2" Classes="field" Header="Server name" Margin="250,0,250,0" IsEnabled="{Binding NameEnabled}">
+            <TextBox Classes="fieldInput" Text="{Binding Name}"/>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Grid.Row="3" Classes="field" Header="Server IP" Margin="250,0,250,0">
+            <TextBox Classes="fieldInput" Text="{Binding IP}"/>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Grid.Row="4" Classes="field" Header="Server port" Margin="250,0,250,0">
+            <TextBox Classes="fieldInput" Text="{Binding Port}" TextChanged="Port_TextChanged"/>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Grid.Row="5" Classes="field" Header="Server password" Margin="250,0,250,0">
+            <TextBox Classes="fieldInput" Text="{Binding Password}"/>
+        </HeaderedContentControl>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Width="135" Content="Confirm" Margin="10" Classes="connect" Command="{Binding ConfirmClick}" IsEnabled="{Binding ConfirmEnabled}"/>
+            <Button Width="135" Content="Cancel" Margin="10" Classes="connect" Command="{Binding CancelClick}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

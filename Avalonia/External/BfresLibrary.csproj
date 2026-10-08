@@ -1,0 +1,26 @@
+<!--
+  Builds the BfresLibrary submodule (NCF-Library/BfresLibrary, namespace Nintendo.Bfres) for net8.0.
+  Its own csproj targets net5.0 and copies Lib/Syroot.NintenTools.NSW.Bntx.dll without referencing
+  it, so it doesn't compile as is. The WPF launcher references a locally built copy instead.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>BfresLibrary</AssemblyName>
+    <RootNamespace>Nintendo.Bfres</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Nullable>disable</Nullable>
+    <!-- Warnings in third-party code. -->
+    <NoWarn>$(NoWarn);CS0108;CS0114;CS0168;CS0219;CS0414;CS0618;CS0649;CS0659;CS0661;CS8632;SYSLIB0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="BfresLibrary/src/**/*.cs" Exclude="BfresLibrary/src/obj/**;BfresLibrary/src/bin/**" />
+    <Reference Include="Syroot.NintenTools.NSW.Bntx" HintPath="BfresLibrary/src/Lib/Syroot.NintenTools.NSW.Bntx.dll" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Syroot.BinaryData" Version="5.2.2" />
+    <PackageReference Include="Syroot.Maths" Version="1.5.3" />
+  </ItemGroup>
+
+</Project>

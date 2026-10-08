@@ -1,0 +1,67 @@
+<!--
+  Cross-platform (Avalonia) version of the launcher in "WPF .NET 6/Breath of the Wild Multiplayer".
+  Platform-neutral sources, images and data files are linked from the WPF project instead of copied.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Breath_of_the_Wild_Multiplayer</RootNamespace>
+    <AssemblyName>MilkBarLauncher</AssemblyName>
+    <Product>Milk Bar Launcher</Product>
+    <Company>Milk Bar</Company>
+    <Nullable>annotations</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <WpfProject>../../WPF .NET 6/Breath of the Wild Multiplayer/</WpfProject>
+    <ApplicationIcon>$(WpfProject)Icon_C.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="AampLibrary" Version="1.0.10" />
+    <PackageReference Include="CsYaz0" Version="1.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../WPF .NET 6/SarcWrapper/SarcWrapper.csproj" />
+    <ProjectReference Include="../External/BfresLibrary.csproj" />
+  </ItemGroup>
+
+  <!-- Platform-neutral sources shared with the WPF launcher. -->
+  <ItemGroup>
+    <Compile Include="$(WpfProject)MVVM/Model/DTO/*.cs" Link="MVVM/Model/DTO/%(Filename)%(Extension)" />
+    <Compile Include="$(WpfProject)MVVM/Model/Background.cs" Link="MVVM/Model/Background.cs" />
+    <Compile Include="$(WpfProject)MVVM/Model/NpcModel.cs" Link="MVVM/Model/NpcModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/Model/ServerInfoModel.cs" Link="MVVM/Model/ServerInfoModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/ChangeNameModel.cs" Link="MVVM/ViewModel/ChangeNameModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/EnvironmentalSelectorModel.cs" Link="MVVM/ViewModel/EnvironmentalSelectorModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/ErrorMessageModel.cs" Link="MVVM/ViewModel/ErrorMessageModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/LoadingModel.cs" Link="MVVM/ViewModel/LoadingModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/ServerEditorModel.cs" Link="MVVM/ViewModel/ServerEditorModel.cs" />
+    <Compile Include="$(WpfProject)MVVM/ViewModel/serverInterfaceModel.cs" Link="MVVM/ViewModel/serverInterfaceModel.cs" />
+    <Compile Include="$(WpfProject)Source files/NamedPipes.cs" Link="Source files/NamedPipes.cs" />
+    <Compile Include="$(WpfProject)Source files/Injector.cs" Link="Source files/Injector.cs" />
+  </ItemGroup>
+
+  <!-- Data files, with the resource names the code looks them up by. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(WpfProject)AppdataFiles/*.txt" LogicalName="Breath_of_the_Wild_Multiplayer.AppdataFiles.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(WpfProject)Resources/NpcData.json" LogicalName="Breath_of_the_Wild_Multiplayer.Resources.NpcData.json" />
+    <EmbeddedResource Include="$(WpfProject)Source files/EnvironmentalModels.txt" LogicalName="Breath_of_the_Wild_Multiplayer.Source_files.EnvironmentalModels.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="$(WpfProject)Images/**/*.png" Link="Images/%(RecursiveDir)%(Filename)%(Extension)" />
+    <AvaloniaResource Include="$(WpfProject)Icon_C.ico" Link="Images/Icon_C.ico" />
+    <None Include="$(WpfProject)Backgrounds/*" Link="Backgrounds/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Windows program used to import Miis (run through Wine elsewhere). -->
+    <None Include="$(WpfProject)Resources/bumii_IO.exe" Link="Resources/bumii_IO.exe" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

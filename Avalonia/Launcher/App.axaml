@@ -1,0 +1,39 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModel="using:Breath_of_the_Wild_Multiplayer.MVVM.ViewModel"
+             xmlns:view="using:Breath_of_the_Wild_Multiplayer.MVVM.View"
+             x:Class="Breath_of_the_Wild_Multiplayer.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Styles>
+        <FluentTheme/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/ToolbarButtons.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/ServerButton.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/TitleAnimations.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/SettingsButtons.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/CharacterSelection.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/LoadingControl.axaml"/>
+        <StyleInclude Source="avares://MilkBarLauncher/Theme/MinigameTimer.axaml"/>
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://MilkBarLauncher/Theme/Images.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.DataTemplates>
+        <DataTemplate DataType="viewModel:MainMenuModel"><view:MainMenuView/></DataTemplate>
+        <DataTemplate DataType="viewModel:IngameMenuModel"><view:IngameMenuView/></DataTemplate>
+        <DataTemplate DataType="viewModel:ServerBrowserModel"><view:ServerBrowserView/></DataTemplate>
+        <DataTemplate DataType="viewModel:SettingsPanelModel"><view:SettingsPanelView/></DataTemplate>
+        <DataTemplate DataType="viewModel:ServerEditorModel"><view:ServerEditorView/></DataTemplate>
+        <DataTemplate DataType="viewModel:ErrorMessageModel"><view:ErrorMessageView/></DataTemplate>
+        <DataTemplate DataType="viewModel:LoadingModel"><view:LoadingView/></DataTemplate>
+        <DataTemplate DataType="viewModel:ChangeNameModel"><view:ChangeNameView/></DataTemplate>
+        <DataTemplate DataType="viewModel:ModelSelectModel"><view:ModelSelectView/></DataTemplate>
+        <DataTemplate DataType="viewModel:EnvironmentalSelectorModel"><view:EnvironmentalSelectorView/></DataTemplate>
+    </Application.DataTemplates>
+</Application>
