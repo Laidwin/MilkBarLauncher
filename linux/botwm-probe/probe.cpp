@@ -150,28 +150,50 @@ uint64_t parseHexEnv(const char* name)
     return value ? strtoull(value, nullptr, 16) : 0;
 }
 
-// Cemu commits fixed guest ranges once a title boots: the FG bucket (0xE0000000), the tiling
-// aperture (0xE8000000) and MEM1 (0xF4000000). A base where readable mappings start at all three
-// is the guest base. The 4 GiB reservation itself can't be used: Linux merges it with neighbouring
-// anonymous mappings, which shifted the base by 0x4801000 on Cemu 2.0-48.
+// True if every byte of [start, end) is covered by readable mappings (maps is sorted by address).
+bool rangeReadable(const std::vector<Region>& maps, uint64_t start, uint64_t end)
+{
+    uint64_t cursor = start;
+    for (const Region& region : maps)
+    {
+        if (region.end <= cursor)
+            continue;
+        if (region.start > cursor || !region.readable())
+            return false;
+        cursor = region.end;
+        if (cursor >= end)
+            return true;
+    }
+    return false;
+}
+
+// Cemu commits fixed guest ranges once a title boots. Matching their exact shape (including the
+// uncommitted gaps between them) pins the base. Cheaper checks don't work: the 4 GiB reservation
+// merges with neighbouring anonymous mappings (base off by 0x4801000 on Cemu 2.0-48), and glibc's
+// 64 MiB-aligned malloc arenas produce many false "region starts at" matches.
 std::vector<uint64_t> baseCandidatesFromMaps(const std::vector<Region>& maps)
 {
-    constexpr uint64_t kFgBucket = 0xE0000000;
-    constexpr uint64_t kTilingAperture = 0xE8000000;
+    constexpr uint64_t kPage = 0x1000;
     constexpr uint64_t kMem1 = 0xF4000000;
 
-    auto readableRegionStartsAt = [&maps](uint64_t addr) {
-        return std::any_of(maps.begin(), maps.end(), [addr](const Region& r) { return r.readable() && r.start == addr; });
+    auto matchesLayout = [&maps](uint64_t base) {
+        return rangeReadable(maps, base + 0x10000000, base + 0x50000000)    // MEM2 (1 GiB minimum)
+            && rangeReadable(maps, base + 0xE0000000, base + 0xE4000000)    // FG bucket
+            && !rangeReadable(maps, base + 0xE4000000, base + 0xE4000000 + kPage)
+            && rangeReadable(maps, base + 0xE8000000, base + 0xEA000000)    // tiling aperture
+            && !rangeReadable(maps, base + 0xEA000000, base + 0xEA000000 + kPage)
+            && rangeReadable(maps, base + kMem1, base + 0xFA000000);        // MEM1, RPL loader, shared
     };
 
     std::vector<uint64_t> result;
     for (const Region& region : maps)
     {
-        if (!region.readable() || !region.path.empty() || region.start < kFgBucket)
+        // MEM1 follows an uncommitted gap, so it always starts its own mapping.
+        if (!region.readable() || !region.path.empty() || region.start < kMem1)
             continue;
 
-        uint64_t base = region.start - kFgBucket;
-        if (readableRegionStartsAt(base + kTilingAperture) && readableRegionStartsAt(base + kMem1))
+        uint64_t base = region.start - kMem1;
+        if (matchesLayout(base))
             result.push_back(base);
     }
     return result;
